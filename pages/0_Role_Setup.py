@@ -1,7 +1,7 @@
 # pages/0_Role_setup.py
 import streamlit as st
 from app.db.roles import init_db, add_role, list_roles, get_role, delete_role, update_role
-from app.llm.plan import generate_interview_plan         
+from app.llm.plan import generate_interview_plan
 from app.db.plans import save_plan_for_role
 
 
@@ -29,6 +29,8 @@ if "role_profile" not in st.session_state:
     st.session_state["role_profile"] = {}
 if "current_role_id" not in st.session_state:
     st.session_state["current_role_id"] = None
+if "form_version" not in st.session_state:
+    st.session_state["form_version"] = 0
 
 roles = list_roles()  # [(id, company_name, title), ...]
 
@@ -43,6 +45,7 @@ with col_left:
     if st.button("Create new role", use_container_width=True):
         st.session_state["current_role_id"] = None
         st.session_state["role_profile"] = {}
+        st.session_state["form_version"] += 1
         st.rerun()
 
     if roles:
@@ -61,6 +64,7 @@ with col_left:
                 if role:
                     st.session_state["current_role_id"] = rid
                     st.session_state["role_profile"] = role
+                    st.session_state["form_version"] += 1
                     st.rerun()
     else:
         st.info("No roles saved yet.\nUse 'Create new role' to add one.")
@@ -80,25 +84,29 @@ with col_right:
     else:
         st.markdown("### Role details")
 
+    fv = st.session_state["form_version"]
+
     c1, c2 = st.columns(2)
     with c1:
         company_name = st.text_input(
             "Company name",
             placeholder="Acme Analytics",
             value=role_profile.get("company_name", ""),
+            key=f"company_name_{fv}",
         )
     with c2:
         title = st.text_input(
             "Role title",
             placeholder="Senior Data Scientist for growth team",
             value=role_profile.get("title", ""),
+            key=f"title_{fv}",
         )
-
 
     context = st.text_area(
         "Context",
         placeholder="Small cross-functional team, high uncertainty, focus on rapid experiments...",
         value=role_profile.get("context", ""),
+        key=f"context_{fv}",
     )
 
     st.subheader("Requirements")
@@ -111,6 +119,7 @@ with col_right:
             max_value=40,
             value=role_profile.get("min_years_exp", 3),
             step=1,
+            key=f"min_years_exp_{fv}",
         )
     with r2:
         degree_options = ["No", "Yes - Bachelor's", "Yes - Master's", "Yes - PhD"]
@@ -118,33 +127,36 @@ with col_right:
             "Is a specific degree required?",
             degree_options,
             index=degree_options.index(role_profile.get("requires_degree", "No")),
+            key=f"requires_degree_{fv}",
         )
-
 
     required_tech = st.text_input(
         "Key tools / technologies (comma separated)",
         placeholder="SQL, Python, dbt",
         value=role_profile.get("required_tech", ""),
+        key=f"required_tech_{fv}",
     )
 
     must_haves = st.text_area(
         "Must-have behaviors / skills",
         placeholder="- Owns experiments end-to-end\n- Communicates clearly with non-tech stakeholders\n- Comfortable with ambiguity",
         value=role_profile.get("must_haves", ""),
+        key=f"must_haves_{fv}",
     )
 
     nice_to_have = st.text_input(
         "Nice-to-have skills",
         placeholder="Experiment design, causal inference",
         value=role_profile.get("nice_to_have", ""),
+        key=f"nice_to_have_{fv}",
     )
 
     red_flags = st.text_area(
         "Red flags",
         placeholder="- Over-engineering simple problems\n- Avoids talking about failures",
         value=role_profile.get("red_flags", ""),
+        key=f"red_flags_{fv}",
     )
-
 
     st.subheader("Interview settings")
 
@@ -155,6 +167,7 @@ with col_right:
         value=role_profile.get("num_questions", 5),
         step=1,
         help="Total number of AI-generated questions in the interview.",
+        key=f"num_questions_{fv}",
     )
 
     s_left, s_right = st.columns([3, 2])
@@ -162,8 +175,6 @@ with col_right:
         if st.session_state["current_role_id"] is not None:
             if st.button("Delete role", type="primary"):
                 confirm_delete_dialog(st.session_state["current_role_id"])
-
-
 
     with s_right:
         if st.button("Save role profile", use_container_width=True):
@@ -188,13 +199,10 @@ with col_right:
                 try:
                     plan = generate_interview_plan(new_profile, num_questions, use_llm=True)
                     st.write("DEBUG plan generated:", plan)
-                    save_plan_for_role(current_id or role_id, plan)
-
                     save_plan_for_role(current_id, plan)
                 except RuntimeError as e:
                     st.warning(f"Role updated, but plan generation failed: {e}")
 
-                # assicura che resti selezionato
                 st.session_state["role_profile"] = new_profile
                 st.session_state["current_role_id"] = current_id
                 st.success("Role profile updated.")
@@ -205,8 +213,6 @@ with col_right:
                 try:
                     plan = generate_interview_plan(new_profile, num_questions, use_llm=True)
                     st.write("DEBUG plan generated:", plan)
-                    save_plan_for_role(current_id or role_id, plan)
-
                     save_plan_for_role(role_id, plan)
                 except RuntimeError as e:
                     st.warning(f"Role saved, but plan generation failed: {e}")
@@ -214,11 +220,6 @@ with col_right:
                 st.session_state["role_profile"] = new_profile
                 st.session_state["current_role_id"] = role_id
                 st.success("Role profile saved. You can now run the interview.")
-
-
-
-
-
 
 st.markdown(
     """

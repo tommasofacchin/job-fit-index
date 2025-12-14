@@ -69,6 +69,42 @@ with col_right:
             st.markdown("### Signature summary")
             st.write(summary)
 
+                        # --- genera markdown anti-portfolio ---
+            md = f"""# JobFitIndex Anti-Portfolio – Score Report
+
+## Candidate
+- Name: {ev['candidate_name'] or '-'}
+- Email: {ev['candidate_email'] or '-'}
+- Phone: {ev['candidate_phone'] or '-'}
+
+## Impronta professionale (signature summary)
+{summary}
+
+## Score breakdown
+Total score: {total} / 100
+
+"""  # chiudo f-string
+
+            for crit in CRITERIA:
+                s = scores.get(crit, 0)
+                md += f"- {crit}: {s} / 20\n"
+
+            md += """
+
+## Come usare questo anti-portfolio
+Questo documento è generato da JobFitIndex a partire da un'intervista strutturata.
+Mette in evidenza pattern decisionali, densità di evidenze e segnali di unicità,
+invece di limitarsi a job title e lista di esperienze.
+"""
+
+            st.download_button(
+                label="Download report (.md)",
+                data=md,
+                file_name=f"jobfitindex_anti_portfolio_{ev['candidate_name'] or 'candidate'}.md",
+                mime="text/markdown",
+            )
+
+
 # Stile container
 st.markdown(
     """

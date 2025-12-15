@@ -19,7 +19,7 @@ JobFitIndex è un “anti-portfolio” AI-native: invece di mostrare job title e
 
 ```bash
 git clone https://github.com/tommasofacchin/job-fit-index.git
-cd jobfitindex
+cd job-fit-index
 ```
 
 Se preferisci, puoi anche scaricare lo ZIP da GitHub e scompattarlo.

@@ -1,30 +1,34 @@
-## JobFitIndex – Anti-Portfolio AI-Native
+> This is a 48-hour Cosmico hackathon project, not a finished product, so expect a functional prototype rather than a polished production app. The current version focuses on showcasing the core AI-native interview and anti-portfolio concept. 
 
-JobFitIndex è un “anti-portfolio” AI-native: invece di mostrare job title e CV statici, usa un’intervista guidata dall’AI per far emergere come pensi, come prendi decisioni, come gestisci fallimenti e dove generi più valore. Il risultato è un profilo narrativo e interattivo, pensato per un mondo in cui l’AI è data per scontata.
+---
+
+# 🚀 JobFitIndex: AI-Native Anti-Portfolio
+
+JobFitIndex is an AI-native "anti-portfolio": instead of displaying static job titles and CVs, it uses an AI-guided interview to reveal how you think, how you make decisions, how you handle failures, and where you generate the most value. The result is a narrative, interactive profile designed for a world where AI is taken for granted. 
 
 ***
 
-## 1. Requisiti
+## 🔒 Requirements
 
 - Python 3.10+  
-- pip (gestore pacchetti Python)  
-- Git installato (opzionale ma consigliato)  
-- Una chiave API di **OpenRouter** (con almeno qualche credito) per accedere ai modelli LLM.
+- pip (Python package manager)  
+- Git installed (optional but recommended)  
+- An **OpenRouter** API key (with at least some credits) to access LLM models. 
 
 ***
 
-## 2. Installazione
+## 📦 Installation
 
-### 2.1. Clona il repository
+### Clone the repository
 
 ```bash
 git clone https://github.com/tommasofacchin/job-fit-index.git
 cd job-fit-index
 ```
 
-Se preferisci, puoi anche scaricare lo ZIP da GitHub e scompattarlo.
+Alternatively, you can download the ZIP from GitHub and extract it. 
 
-### 2.2. Crea ed attiva un virtual environment (consigliato)
+### Create and activate a virtual environment (recommended)
 
 ```bash
 python -m venv .venv
@@ -34,9 +38,9 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-### 2.3. Installa le dipendenze
+### Install dependencies
 
-Assicurati di avere un `requirements.txt` (es. con `streamlit`, `requests`, `sqlite3` integrato in Python, ecc.), poi:
+Make sure you have a `requirements.txt` (e.g., with `streamlit`, `requests`, `sqlite3` built into Python, etc.), then:
 
 ```bash
 pip install -r requirements.txt
@@ -44,17 +48,16 @@ pip install -r requirements.txt
 
 ***
 
-## 3. Configurazione LLM (OpenRouter)
+## 🤖 LLM Configuration (OpenRouter)
 
-### 3.1. Crea un’API key su OpenRouter
+### Create an API key on OpenRouter
 
-1. Vai su https://openrouter.ai  
-2. Crea un account e genera una **API key** (`sk-or-...`).[1]
-3. Aggiungi eventualmente crediti (es. 10$) per ottenere più richieste giornaliere sui modelli `:free`.[2][3]
+1. Go to https://openrouter.ai  
+2. Create an account and generate an **API key** (`sk-or-...`).  
 
-### 3.2. Configura i secrets di Streamlit
+### Configure Streamlit secrets
 
-Crea (o modifica) il file `.streamlit/secrets.toml` nella root del progetto:
+Create (or edit) the `.streamlit/secrets.toml` file in the project root:
 
 ```toml
 LLM_API_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -62,127 +65,67 @@ LLM_MODEL   = "meta-llama/llama-3.3-8b-instruct:free"
 LLM_API_KEY = "sk-or-..."
 ```
 
-Puoi cambiare modello con un altro `:free` supportato da OpenRouter.[4][5]
+You can change the model to another `:free` model supported by OpenRouter. 
 
 ***
 
-## 4. Struttura del progetto
+## 🏗️ Project Structure
 
-Le parti principali dell’app:
-
-- `app/llm/client.py`  
-  Wrapper per chiamare l’API OpenRouter in stile OpenAI (chat completions).
-
-- `app/llm/plan.py`  
-  Genera i **piani di intervista** (sequenza di domande) a partire dal profilo del ruolo.
-
-- `app/llm/questions.py`  
-  Prende il piano e genera le domande concrete, in un’unica call batch al modello.
-
-- `app/llm/judge.py`  
-  Valuta le risposte del candidato e produce lo **score** + **signature summary** (impronta professionale).
-
-- `app/db/roles.py`, `app/db/plans.py`, `app/db/evaluations.py`  
-  Gestiscono il database SQLite (`jobfit.db`): ruoli, piani per ruolo, interviste/evaluations.
-
-- `pages/0_Role_setup.py`  
-  UI per definire/gestire i **ruoli** (company, title, contesto, must-have, red flags, numero domande).
-
-- `pages/1_Interview.py`  
-  UI per l’intervista vera e propria (chat-style): il candidato risponde alle domande generate da JobFitIndex.
-
-- `pages/2_Score_Report.py`  
-  UI per vedere gli **score report**, il breakdown dei criteri e scaricare l’anti-portfolio in formato Markdown.
+```
+├─ Home.py                    # Streamlit main entrypoint (landing + navigation)
+├─ app/
+│   ├─ __init__.py            # Package marker
+│   ├─ llm/
+│   │   ├─ client.py          # OpenRouter client, OpenAI-style chat completions [web:1]
+│   │   ├─ plan.py            # Build AI interview plans from role profile [web:1]
+│   │   ├─ questions.py       # Batch-generate concrete questions from the plan [web:1]
+│   │   └─ judge.py           # Score answers + build signature summary (anti-portfolio core) [web:1]
+│   └─ db/
+│       ├─ roles.py           # CRUD for roles (company, title, context, must-haves, etc.) [web:1]
+│       ├─ plans.py           # Persisted interview plans per role [web:1]
+│       └─ evaluations.py     # Interviews, answers, and final evaluations storage [web:1]
+├─ pages/
+│   ├─ 0_Role_setup.py        # Define/manage roles and generate AI interview plans [web:1]
+│   ├─ 1_Interview.py         # Run the AI-guided interview (chat-style UI) [web:1]
+│   └─ 2_Score_Report.py      # Score breakdown + Markdown anti-portfolio export [web:1]
+├─ jobfit.db                  # SQLite database (auto-created at runtime) [web:1]
+├─ requirements.txt           # Python dependencies (Streamlit, requests, etc.) [web:1]
+└─ README.md                  # Project description and usage guide [web:1]
+```
 
 ***
 
-## 5. Avvio dell’app
+## 🏃 Running the App
 
-Dalla root del progetto (con virtual env attivo):
+From the project root (with the virtual environment activated):
 
 ```bash
 streamlit run Home.py
 ```
 
-Streamlit aprirà automaticamente il browser su `http://localhost:8501`.
+Streamlit will automatically open your browser at `http://localhost:8501`. 
 
 ***
 
-## 6. Come usare JobFitIndex
+## 🧪 How to Use JobFitIndex
 
-### 6.1. Creare un ruolo (Role Setup)
+### Creating a Role (Role Setup)
 
-1. Vai alla pagina **“Role setup”** (0_Role_setup).  
-2. Clicca **“Create new role”**: i campi vengono azzerati.  
-3. Compila:
-   - Company name  
-   - Role title  
-   - Context (team, prodotto, incertezza, ecc.)  
-   - Minimum years of experience  
-   - Degree required (No / Bachelor / Master / PhD)  
-   - Key tools / technologies  
-   - Must-have behaviors / skills  
-   - Nice-to-have skills  
-   - Red flags  
-   - Number of questions to ask (es. 5–10)  
-4. Clicca **“Save role profile”**.  
-   - Il ruolo viene salvato in `jobfit.db`.  
-   - Viene generato e salvato un **interview plan** AI-based per quel ruolo (sequenza di focus/typo di domanda).
+- Go to the **"Role setup"** page (0_Role_setup).  
+- Click **"Create new role"**.  
+- Fill in role details (company, role title, context, experience, degree, tools, must-haves, nice-to-haves, red flags, number of questions).  
+- Click **"Save role profile"** to store the role and generate an AI-based interview plan. 
 
-Puoi creare più ruoli (es. Data/ML Engineer, Product Designer, Growth Marketer) e selezionarli dalla colonna sinistra.
+### Conducting an Interview
 
-### 6.2. Lanciare un’intervista
+- Go to the **"Interview"** page (1_Interview).  
+- Select a role.  
+- Enter candidate info (name, email, phone, years of experience, tools used).  
+- Click **"Start interview"** to generate and present questions (open text, multiple choice, 1–10 scale) one by one, storing answers in the session state and evaluating them at the end. 
 
-1. Vai alla pagina **“Interview”** (1_Interview).  
-2. Seleziona un **ruolo** dalla lista.  
-3. Compila le **info base candidato**:
-   - Full name  
-   - Email  
-   - Phone number  
-   - Years of experience  
-   - Tools usati  
-4. Clicca **“Start interview”**.
+### Viewing the Score and Generating the Anti-Portfolio
 
-L’app:
-
-- carica il piano di intervista per quel ruolo,  
-- genera le domande con una chiamata batch al modello,  
-- presenta le domande una alla volta, con input:
-  - testo libero (open)  
-  - scelta multipla (mcq)  
-  - scala 1–10 (scale)
-
-Per ogni risposta:
-
-- viene aggiornato lo stato (`st.session_state["answers"]`),  
-- al termine viene chiamato il modulo `judge` per valutare e sintetizzare le risposte.
-
-### 6.3. Vedere lo score e generare l’anti-portfolio
-
-1. Vai alla pagina **“Score Report”** (2_Score_Report).  
-2. Nella colonna sinistra, seleziona una **evaluation** (intervista completata).  
-3. Nella colonna destra vedi:
-   - dati candidato,  
-   - score totale (0–100),  
-   - breakdown sui 5 criteri:
-     - Evidence density  
-     - Decision quality  
-     - Failure intelligence  
-     - Context translation  
-     - Uniqueness signal  
-   - Signature summary (impronta professionale generata dall’AI).
-
-In fondo, trovi il bottone per scaricare l’**anti-portfolio** in formato Markdown:
-
-```python
-st.download_button(
-    label="Scarica anti-portfolio (.md)",
-    data=md,
-    file_name=f"jobfitindex_anti_portfolio_{ev['candidate_name'] or 'candidate'}.md",
-    mime="text/markdown",
-)
-```
-
-Questo file `.md` è uno dei deliverable richiesti: un anti-portfolio AI-native generato direttamente dal tool.
-
-***
+- Go to the **"Score Report"** page (2_Score_Report).  
+- Select a completed **evaluation**.  
+- View candidate data, total score (0–100), breakdown on 5 criteria (Evidence density, Decision quality, Failure intelligence, Context translation, Uniqueness signal), and the AI-generated signature summary.  
+- Use the **Download anti-portfolio (.md)** button to export the AI-native anti-portfolio in Markdown format.   
